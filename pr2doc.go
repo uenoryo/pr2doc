@@ -108,7 +108,7 @@ func (pr2doc *Pr2Doc) findPRNumber(text string) (int, error) {
 }
 
 func (pr2doc *Pr2Doc) findDescription(body, identifier string) string {
-	format := fmt.Sprintf("(?s)```%s\n(?P<description>.*)\n```$", identifier)
+	format := fmt.Sprintf("(?s)```%s(?P<description>.*)```$", identifier)
 	re := regexp.MustCompile(format)
 	res := re.FindAllStringSubmatch(body, -1)
 

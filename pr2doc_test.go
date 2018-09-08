@@ -80,7 +80,7 @@ func TestRun(t *testing.T) {
         {
             Title:   "success",
             Input:   "ABCDEFG123456789",
-            Output:  "```\n【Test title 1】\nPlease shere this message 1\n\n【Test title 2】\nPlease shere this message 2\n```",
+            Output:  "```\n【Test title 1】\n\nPlease shere this message 1\n\n【Test title 2】\n\nPlease shere this message 2\n```",
             IsError: false,
         },
         {
@@ -127,11 +127,11 @@ func Test_collectDoc(t *testing.T) {
             Output: []*Doc{
                 {
                     Title:       "Test title 1",
-                    Description: "Please shere this message 1",
+                    Description: "\nPlease shere this message 1\n",
                 },
                 {
                     Title:       "Test title 2",
-                    Description: "Please shere this message 2",
+                    Description: "\nPlease shere this message 2\n",
                 },
             },
             IsError: false,
@@ -182,26 +182,21 @@ func Test_findDescription(t *testing.T) {
         {
             Title:  "success",
             Input:  "```test\ndescription\n```",
-            Output: "description",
+            Output: "\ndescription\n",
         },
         {
             Title:  "success (includes new line)",
             Input:  "```test\ndescription\ndescription\ndescription\n```",
-            Output: "description\ndescription\ndescription",
+            Output: "\ndescription\ndescription\ndescription\n",
         },
         {
             Title:  "success (includes other text)",
             Input:  "this is pull request body\n```test\ndescription\n```",
-            Output: "description",
+            Output: "\ndescription\n",
         },
         {
             Title:  "error (mismatch identifier)",
             Input:  "```go\ntest\n```",
-            Output: "",
-        },
-        {
-            Title:  "error (missing new line)",
-            Input:  "```test\ndescription```",
             Output: "",
         },
     }
