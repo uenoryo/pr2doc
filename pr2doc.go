@@ -92,7 +92,7 @@ func (pr2doc *Pr2Doc) collectDoc(ctx context.Context, commitHash string) ([]*Doc
 }
 
 func (pr2doc *Pr2Doc) findPRNumber(text string) (int, error) {
-	re := regexp.MustCompile("#(?P<number>[0-9]{4,5}) ")
+	re := regexp.MustCompile(" #(?P<number>[0-9]{1,5}) ")
 	res := re.FindAllStringSubmatch(text, -1)
 
 	if len(res) == 0 || len(res[0]) < 2 {
