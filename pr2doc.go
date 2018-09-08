@@ -35,7 +35,7 @@ type Doc struct {
 func (pr2doc *Pr2Doc) Run(ctx context.Context, commitHash string) (string, error) {
 	docs, err := pr2doc.collectDoc(ctx, commitHash)
 	if err != nil {
-		// TODO log
+		return "", errors.Wrap(err, "error collectDoc")
 	}
 	tmpl := template.Must(template.ParseFiles("doc.tmpl"))
 	var res bytes.Buffer

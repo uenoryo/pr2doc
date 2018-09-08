@@ -68,6 +68,50 @@ func toPtr(s string) *string {
     return &s
 }
 
+func TestRun(t *testing.T) {
+    type test struct {
+        Title   string
+        Input   string
+        Output  string
+        IsError bool
+    }
+
+    tests := []test{
+        {
+            Title:   "success",
+            Input:   "ABCDEFG123456789",
+            Output:  "```\n【Test title 1】\nPlease shere this message 1\n\n【Test title 2】\nPlease shere this message 2\n```",
+            IsError: false,
+        },
+        {
+            Title:   "error (commit not found)",
+            Input:   "INVALID-COMMIT-HASH",
+            Output:  "",
+            IsError: true,
+        },
+    }
+
+    for _, test := range tests {
+        t.Run(test.Title, func(t *testing.T) {
+            p2d := NewPr2Doc(&mockGithubService{})
+            doc, err := p2d.Run(context.Background(), test.Input)
+
+            if test.IsError {
+                if err == nil {
+                    t.Fatal("error this is error case")
+                }
+                return
+            }
+            if err != nil {
+                t.Fatal("error collectDoc", err.Error())
+            }
+            if doc != test.Output {
+                t.Fatalf("error doc %s, want %s", doc, test.Output)
+            }
+        })
+    }
+}
+
 func Test_collectDoc(t *testing.T) {
     type test struct {
         Title   string
