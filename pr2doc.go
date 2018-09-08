@@ -37,6 +37,9 @@ func (pr2doc *Pr2Doc) Run(ctx context.Context, commitHash string) (string, error
 	if err != nil {
 		return "", errors.Wrap(err, "error collectDoc")
 	}
+	if len(docs) == 0 {
+		return "", nil
+	}
 	tmpl := template.Must(template.ParseFiles("doc.tmpl"))
 	var res bytes.Buffer
 	if err := tmpl.Execute(&res, docs); err != nil {
