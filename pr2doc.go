@@ -13,7 +13,7 @@ import (
 )
 
 const (
-	descriptionIdentifier = "shere"
+	descriptionIdentifier = "share"
 )
 
 type Pr2Doc struct {
@@ -77,7 +77,7 @@ func (pr2doc *Pr2Doc) collectDoc(ctx context.Context, commitHash string) ([]*Doc
 	}
 
 	for _, num := range prNums {
-		var doc *Doc
+		var doc Doc
 		pr, err := pr2doc.gs.GetPullRequest(ctx, num)
 		if err != nil {
 			// TODO: log
@@ -86,7 +86,7 @@ func (pr2doc *Pr2Doc) collectDoc(ctx context.Context, commitHash string) ([]*Doc
 			doc.Title = *pr.Title
 			doc.Description = pr2doc.findDescription(*pr.Body, descriptionIdentifier)
 		}
-		docs = append(docs, doc)
+		docs = append(docs, &doc)
 	}
 	return docs, nil
 }
@@ -108,7 +108,7 @@ func (pr2doc *Pr2Doc) findPRNumber(text string) (int, error) {
 }
 
 func (pr2doc *Pr2Doc) findDescription(body, identifier string) string {
-	format := fmt.Sprintf("(?s)^```%s\n(?P<description>.*)\n```$", identifier)
+	format := fmt.Sprintf("(?s)```%s\n(?P<description>.*)\n```$", identifier)
 	re := regexp.MustCompile(format)
 	res := re.FindAllStringSubmatch(body, -1)
 

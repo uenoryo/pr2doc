@@ -2,6 +2,7 @@ package pr2doc
 
 import (
     "context"
+    "reflect"
     "testing"
 
     "github.com/google/go-github/github"
@@ -11,7 +12,10 @@ import (
 type mockGithubService struct{}
 
 // GetCommit is XXX
-func (gs *mockGithubService) GetCommit(_ context.Context, _ string) (*github.RepositoryCommit, error) {
+func (gs *mockGithubService) GetCommit(_ context.Context, sha string) (*github.RepositoryCommit, error) {
+    if sha != "ABCDEFG123456789" {
+        return nil, errors.Errorf("error commit sha:%s is not found", sha)
+    }
     return &github.RepositoryCommit{
         Commit: &github.Commit{
             Message: toPtr("Merge pull request #12345 from pr2doc/develop"),
@@ -51,7 +55,7 @@ func (gs *mockGithubService) GetPullRequest(_ context.Context, prNum int) (*gith
             Body:  toPtr("This is test pull request.\n```share\nPlease shere this message 1\n```"),
         }, nil
     }
-    if prNum == 345 {
+    if prNum == 456 {
         return &github.PullRequest{
             Title: toPtr("Test title 2"),
             Body:  toPtr("This is test pull request.\n```share\nPlease shere this message 2\n```"),
@@ -62,6 +66,64 @@ func (gs *mockGithubService) GetPullRequest(_ context.Context, prNum int) (*gith
 
 func toPtr(s string) *string {
     return &s
+}
+
+func Test_collectDoc(t *testing.T) {
+    type test struct {
+        Title   string
+        Input   string
+        Output  []*Doc
+        IsError bool
+    }
+
+    tests := []test{
+        {
+            Title: "success",
+            Input: "ABCDEFG123456789",
+            Output: []*Doc{
+                {
+                    Title:       "Test title 1",
+                    Description: "Please shere this message 1",
+                },
+                {
+                    Title:       "Test title 2",
+                    Description: "Please shere this message 2",
+                },
+            },
+            IsError: false,
+        },
+        {
+            Title:   "error (commit not found)",
+            Input:   "INVALID-COMMIT-HASH",
+            Output:  []*Doc{},
+            IsError: true,
+        },
+    }
+
+    for _, test := range tests {
+        t.Run(test.Title, func(t *testing.T) {
+            p2d := NewPr2Doc(&mockGithubService{})
+            docs, err := p2d.collectDoc(context.Background(), test.Input)
+
+            if test.IsError {
+                if err == nil {
+                    t.Fatal("error this is error case")
+                }
+                return
+            }
+            if err != nil {
+                t.Fatal("error collectDoc", err.Error())
+            }
+            if g, w := len(docs), len(test.Output); g != w {
+                t.Fatalf("error doc num %d, want %d", g, w)
+            }
+            for i, doc := range docs {
+                if g, w := doc, test.Output[i]; !reflect.DeepEqual(g, w) {
+                    t.Errorf("error collect doc[%d] %+v, want %+v", i, g, w)
+                }
+            }
+        })
+    }
 }
 
 func Test_findDescription(t *testing.T) {
@@ -82,6 +144,11 @@ func Test_findDescription(t *testing.T) {
             Title:  "success (includes new line)",
             Input:  "```test\ndescription\ndescription\ndescription\n```",
             Output: "description\ndescription\ndescription",
+        },
+        {
+            Title:  "success (includes other text)",
+            Input:  "this is pull request body\n```test\ndescription\n```",
+            Output: "description",
         },
         {
             Title:  "error (mismatch identifier)",
@@ -124,7 +191,7 @@ func Test_findPRNumber(t *testing.T) {
             Output: 123,
         },
         {
-            Title:  "error (missing PR number requires # )",
+            Title:  "error (missing PR number requires #)",
             Input:  "Merge pull request 12345 from pr2doc/develop",
             Output: 0,
         },
