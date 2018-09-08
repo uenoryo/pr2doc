@@ -1,6 +1,68 @@
 package pr2doc
 
-import "testing"
+import (
+    "context"
+    "testing"
+
+    "github.com/google/go-github/github"
+    "github.com/pkg/errors"
+)
+
+type mockGithubService struct{}
+
+// GetCommit is XXX
+func (gs *mockGithubService) GetCommit(_ context.Context, _ string) (*github.RepositoryCommit, error) {
+    return &github.RepositoryCommit{
+        Commit: &github.Commit{
+            Message: toPtr("Merge pull request #12345 from pr2doc/develop"),
+        },
+    }, nil
+}
+
+// GetPullRequest is XXX
+func (gs *mockGithubService) GetPullRequestCommits(ctx context.Context, prNum int) ([]*github.RepositoryCommit, error) {
+    if prNum != 12345 {
+        return []*github.RepositoryCommit{}, errors.Errorf("error pull request #%d is not found", prNum)
+    }
+    return []*github.RepositoryCommit{
+        {
+            Commit: &github.Commit{
+                Message: toPtr("Merge pull request #123 from pr2doc/develop"),
+            },
+        },
+        {
+            Commit: &github.Commit{
+                Message: toPtr("Merge pull request #456 from pr2doc/develop"),
+            },
+        },
+        {
+            Commit: &github.Commit{
+                Message: toPtr("Fix mobile nav menu"),
+            },
+        },
+    }, nil
+}
+
+// GetPullRequest is XXX
+func (gs *mockGithubService) GetPullRequest(_ context.Context, prNum int) (*github.PullRequest, error) {
+    if prNum == 123 {
+        return &github.PullRequest{
+            Title: toPtr("Test title 1"),
+            Body:  toPtr("This is test pull request.\n```share\nPlease shere this message 1\n```"),
+        }, nil
+    }
+    if prNum == 345 {
+        return &github.PullRequest{
+            Title: toPtr("Test title 2"),
+            Body:  toPtr("This is test pull request.\n```share\nPlease shere this message 2\n```"),
+        }, nil
+    }
+    return nil, errors.Errorf("error pull request #%d is not found", prNum)
+}
+
+func toPtr(s string) *string {
+    return &s
+}
 
 func Test_findDescription(t *testing.T) {
     type test struct {
