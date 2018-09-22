@@ -15,6 +15,11 @@ const (
 )
 
 func main() {
+	if len(os.Args) != 2 {
+		fmt.Println("pr2doc required commit hash.")
+		return
+	}
+
 	ctx := context.Background()
 	gs := pr2doc.NewGithubService(ctx, repoOwner, repoName, token)
 	p2d := pr2doc.NewPr2Doc(gs)
