@@ -80,7 +80,7 @@ func TestRun(t *testing.T) {
         {
             Title:   "success",
             Input:   "ABCDEFG123456789",
-            Output:  "```\n【Test title 1】\n\nPlease shere this message 1\n\n【Test title 2】\n\nPlease shere this message 2\n```",
+            Output:  "\n【Test title 1】\n\nPlease shere this message 1\n\n【Test title 2】\n\nPlease shere this message 2\n",
             IsError: false,
         },
         {
